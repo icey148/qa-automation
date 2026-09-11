@@ -8,7 +8,7 @@ on:
         required: true
         default: api
         type: choice
-        options: [api]
+        options: [api, ui]
 
 permissions:
   contents: read
@@ -32,3 +32,34 @@ jobs:
         with:
           name: api-test-results
           path: tests/api/test-results.json
+
+  ui:
+    if: inputs.target == 'ui'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tests/ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tests/ui/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: Run UI tests
+        env:
+          UI_BASE_URL: ${{ vars.UI_BASE_URL }}
+          PLAYWRIGHT_STORAGE_STATE: ${{ secrets.PLAYWRIGHT_STORAGE_STATE_PATH }}
+        run: npm test
+      - name: Upload UI test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-results
+          path: |
+            tests/ui/test-results
+            tests/ui/playwright-report
