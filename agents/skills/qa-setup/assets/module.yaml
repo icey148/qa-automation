@@ -1,0 +1,12 @@
+code: qa
+author: icey148
+name: QA Automation
+description: AI-assisted QA artifact generation with an executable automation testing framework.
+module_version: 0.1.0
+
+defaults:
+  artifact_output: artifacts
+  test_directory: tests
+  framework_path: automation-framework
+  auth_path: .auth
+  default_environment: dev

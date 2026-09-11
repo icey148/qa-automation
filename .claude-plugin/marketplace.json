@@ -1,0 +1,20 @@
+{
+  "name": "qa-automation",
+  "owner": { "name": "icey148" },
+  "plugins": [
+    {
+      "name": "qa-automation",
+      "source": "./",
+      "description": "QA artifact generation skills plus an automation test framework.",
+      "version": "0.1.0",
+      "skills": [
+        "./agents/skills/qa-setup",
+        "./agents/skills/test-strategy",
+        "./agents/skills/test-plan",
+        "./agents/skills/test-case",
+        "./agents/skills/test-script",
+        "./agents/skills/github-action"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+# Auth/session state
+.auth/*
+!.auth/.gitkeep
+
+# Runtime artifacts
+artifacts/runs/
+*.log
+
+# Go
+bin/
+coverage.out
+
+# Node / Playwright
+node_modules/
+playwright-report/
+test-results/
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/

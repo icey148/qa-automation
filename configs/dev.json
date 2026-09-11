@@ -1,0 +1,9 @@
+{
+  "environment": "dev",
+  "testCommand": "cd ../tests/api && go test ./...",
+  "auth": {
+    "provider": "sso",
+    "sessionRole": "qa-user",
+    "sessionDir": "../.auth"
+  }
+}

@@ -1,0 +1,6 @@
+module,skill,display-name,menu-code,description,action,args,phase,preceded-by,followed-by,required,output-location,outputs
+QA Automation,test-strategy,Generate Test Strategy,TS,Generate a structured QA test strategy.,generate,[requirement],2-planning,,,false,artifact_output,test-strategy.md
+QA Automation,test-plan,Generate Test Plan,TP,Generate a structured QA test plan.,generate,[requirement],2-planning,,,false,artifact_output,test-plan.md
+QA Automation,test-case,Generate Test Cases,TC,Generate traceable executable test cases.,generate,[requirement],3-solutioning,,test-script:generate,false,artifact_output,test-cases.md
+QA Automation,test-script,Generate Test Scripts,TSC,Generate automation scripts strictly from test cases.,generate,[test-case],4-implementation,test-case:generate,github-action:generate,true,test_directory,test scripts
+QA Automation,github-action,Generate GitHub Action,GHA,Generate GitHub Actions workflows for existing test scripts.,generate,[test-script],4-implementation,test-script:generate,,false,.github/workflows,workflow yaml

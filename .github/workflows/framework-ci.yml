@@ -1,0 +1,25 @@
+name: Framework CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  framework:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: automation-framework/go.mod
+      - name: Test automation framework
+        working-directory: automation-framework
+        run: go test ./...
+      - name: Test example API suite
+        working-directory: tests/api
+        run: go test ./...

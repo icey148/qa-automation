@@ -1,0 +1,9 @@
+{
+  "environment": "ci",
+  "testCommand": "cd ../tests/api && go test ./...",
+  "auth": {
+    "provider": "oidc-or-service-identity",
+    "sessionRole": "ci",
+    "sessionDir": "../.auth"
+  }
+}

@@ -1,0 +1,19 @@
+name: QA Tests
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: automation-framework/go.mod
+      - name: Framework tests
+        working-directory: automation-framework
+        run: go test ./...
+      - name: API tests
+        working-directory: tests/api
+        run: go test ./...
