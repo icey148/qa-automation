@@ -9,10 +9,20 @@ on:
         default: api
         type: choice
         options: [api, ui]
+      environment:
+        description: Test environment name
+        required: true
+        default: dev
+        type: string
 
 permissions:
   contents: read
   id-token: write
+
+env:
+  QA_ARTIFACT_ROOT: test-artifacts
+  QA_TEST_TARGET: ${{ inputs.target }}
+  QA_ENVIRONMENT: ${{ inputs.environment }}
 
 jobs:
   api:
@@ -20,46 +30,93 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-go@v5
         with:
           go-version-file: automation-framework/go.mod
+
+      - name: Prepare artifact workspace
+        run: python3 scripts/ci/prepare_test_artifacts.py
+
       - name: Run API tests
-        working-directory: tests/api
-        run: go test -json ./... | tee test-results.json
-      - name: Upload raw test result
+        id: api-tests
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          cd tests/api
+          go test -json ./... 2>&1 | tee ../../test-artifacts/reports/api-test-results.json | tee ../../test-artifacts/logs/api-test.log
+
+      - name: Record API execution status
+        if: always()
+        run: |
+          printf '%s\n' '${{ steps.api-tests.outcome }}' > test-artifacts/debug_info/test-outcome.txt
+
+      - name: Upload QA artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: api-test-results
-          path: tests/api/test-results.json
+          name: qa-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test-artifacts/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Fail job when API tests failed
+        if: steps.api-tests.outcome == 'failure'
+        run: exit 1
 
   ui:
     if: inputs.target == 'ui'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: tests/ui
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-          cache-dependency-path: tests/ui/package-lock.json
-      - name: Install dependencies
-        run: npm ci
+
+      - name: Prepare artifact workspace
+        run: python3 scripts/ci/prepare_test_artifacts.py
+
+      - name: Install UI test dependencies
+        working-directory: tests/ui
+        run: npm install
+
       - name: Install Playwright browser
+        working-directory: tests/ui
         run: npx playwright install --with-deps chromium
+
       - name: Run UI tests
+        id: ui-tests
+        continue-on-error: true
+        working-directory: tests/ui
         env:
           UI_BASE_URL: ${{ vars.UI_BASE_URL }}
           PLAYWRIGHT_STORAGE_STATE: ${{ secrets.PLAYWRIGHT_STORAGE_STATE_PATH }}
-        run: npm test
-      - name: Upload UI test artifacts
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee ../../test-artifacts/logs/playwright.log
+
+      - name: Collect UI artifacts
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p test-artifacts/reports test-artifacts/cases test-artifacts/debug_info
+          cp tests/ui/test-results/junit.xml test-artifacts/reports/junit.xml 2>/dev/null || true
+          cp -R tests/ui/playwright-report test-artifacts/reports/playwright-html 2>/dev/null || true
+          cp -R tests/ui/test-results/. test-artifacts/cases/ 2>/dev/null || true
+          printf '%s\n' '${{ steps.ui-tests.outcome }}' > test-artifacts/debug_info/test-outcome.txt
+
+      - name: Upload QA artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ui-test-results
-          path: |
-            tests/ui/test-results
-            tests/ui/playwright-report
+          name: qa-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test-artifacts/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Fail job when UI tests failed
+        if: steps.ui-tests.outcome == 'failure'
+        run: exit 1
