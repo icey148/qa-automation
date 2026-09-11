@@ -3,6 +3,7 @@
 !.auth/.gitkeep
 
 # Runtime artifacts
+test-artifacts/
 artifacts/runs/
 *.log
 
